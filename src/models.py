@@ -7,9 +7,10 @@ for representing video frames, detections, tracks, zones, and events.
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
+from pydantic import BaseModel, Field
 
 
 @dataclass
@@ -172,3 +173,158 @@ class Event:
     store_id: str
     track_id: int
     metadata: Dict[str, Any]
+
+
+# ============================================================================
+# Pydantic Models for API Request/Response
+# ============================================================================
+
+class IngestResponse(BaseModel):
+    """Response model for event ingestion endpoint.
+    
+    Attributes:
+        success: Whether the ingestion was successful
+        events_processed: Number of events successfully processed
+        errors: List of error messages (empty if all succeeded)
+    """
+    success: bool = Field(..., description="Whether the ingestion was successful")
+    events_processed: int = Field(..., ge=0, description="Number of events successfully processed")
+    errors: List[str] = Field(default_factory=list, description="List of error messages")
+
+
+class TimeRange(BaseModel):
+    """Time range for filtering metrics.
+    
+    Attributes:
+        start: Start timestamp in ISO 8601 format
+        end: End timestamp in ISO 8601 format
+    """
+    start: datetime = Field(..., description="Start timestamp")
+    end: datetime = Field(..., description="End timestamp")
+
+
+class StoreMetrics(BaseModel):
+    """Aggregated metrics for a store.
+    
+    Attributes:
+        store_id: Store identifier
+        total_entries: Total number of entry events
+        total_exits: Total number of exit events
+        current_occupancy: Current number of people in store (entries - exits)
+        average_visit_duration_seconds: Average time spent in store
+        time_range: Time range for which metrics were calculated
+    """
+    store_id: str = Field(..., description="Store identifier")
+    total_entries: int = Field(..., ge=0, description="Total number of entry events")
+    total_exits: int = Field(..., ge=0, description="Total number of exit events")
+    current_occupancy: int = Field(..., description="Current occupancy (entries - exits)")
+    average_visit_duration_seconds: float = Field(..., ge=0, description="Average visit duration")
+    time_range: Optional[TimeRange] = Field(None, description="Time range for metrics")
+
+
+class FunnelStage(BaseModel):
+    """Single stage in the conversion funnel.
+    
+    Attributes:
+        stage: Stage name (entries, zone_visits, billing_queue_joins, completed_purchases)
+        count: Number of customers at this stage
+        conversion_rate: Conversion rate from previous stage (1.0 for first stage)
+    """
+    stage: str = Field(..., description="Stage name")
+    count: int = Field(..., ge=0, description="Number of customers at this stage")
+    conversion_rate: float = Field(..., ge=0, le=1, description="Conversion rate from previous stage")
+
+
+class ConversionFunnel(BaseModel):
+    """Customer journey conversion funnel.
+    
+    Attributes:
+        store_id: Store identifier
+        stages: List of funnel stages with counts and conversion rates
+        zone_id: Optional zone filter applied
+    """
+    store_id: str = Field(..., description="Store identifier")
+    stages: List[FunnelStage] = Field(..., description="Funnel stages")
+    zone_id: Optional[str] = Field(None, description="Zone filter (if applied)")
+
+
+class GridDimensions(BaseModel):
+    """Dimensions of the heatmap grid.
+    
+    Attributes:
+        width: Number of grid cells horizontally
+        height: Number of grid cells vertically
+    """
+    width: int = Field(..., gt=0, description="Grid width in cells")
+    height: int = Field(..., gt=0, description="Grid height in cells")
+
+
+class Heatmap(BaseModel):
+    """Spatial density heatmap of customer movement.
+    
+    Attributes:
+        store_id: Store identifier
+        resolution: Grid cell size in pixels
+        grid: Grid dimensions
+        density: 2D array of normalized density values [0, 1]
+    """
+    store_id: str = Field(..., description="Store identifier")
+    resolution: int = Field(..., gt=0, description="Grid cell size in pixels")
+    grid: GridDimensions = Field(..., description="Grid dimensions")
+    density: List[List[float]] = Field(..., description="2D density array normalized to [0, 1]")
+
+
+class AnomalyMetrics(BaseModel):
+    """Metrics associated with an anomaly.
+    
+    Attributes:
+        baseline: Expected baseline value
+        observed: Observed value that triggered anomaly
+        threshold: Threshold value for anomaly detection
+    """
+    baseline: float = Field(..., description="Expected baseline value")
+    observed: float = Field(..., description="Observed value")
+    threshold: float = Field(..., description="Anomaly detection threshold")
+
+
+class Anomaly(BaseModel):
+    """Detected anomaly in store metrics.
+    
+    Attributes:
+        type: Anomaly type (sudden_crowd_surge, high_queue_abandonment, etc.)
+        severity: Severity level (low, medium, high)
+        timestamp: When the anomaly was detected
+        description: Human-readable description
+        metrics: Associated metrics (baseline, observed, threshold)
+    """
+    type: str = Field(..., description="Anomaly type")
+    severity: str = Field(..., pattern="^(low|medium|high)$", description="Severity level")
+    timestamp: datetime = Field(..., description="Detection timestamp")
+    description: str = Field(..., description="Human-readable description")
+    metrics: AnomalyMetrics = Field(..., description="Associated metrics")
+
+
+class HealthCheck(BaseModel):
+    """Individual health check result.
+    
+    Attributes:
+        name: Check name (e.g., 'database')
+        status: Check status ('ok', 'degraded', 'failed')
+    """
+    name: str = Field(..., description="Check name")
+    status: str = Field(..., pattern="^(ok|degraded|failed)$", description="Check status")
+
+
+class HealthStatus(BaseModel):
+    """System health status.
+    
+    Attributes:
+        status: Overall system status (healthy, degraded, unhealthy)
+        checks: Individual health check results
+        response_time_ms: Health check response time in milliseconds
+        timestamp: When the health check was performed
+    """
+    status: str = Field(..., pattern="^(healthy|degraded|unhealthy)$", description="Overall status")
+    checks: Dict[str, str] = Field(..., description="Individual check results")
+    response_time_ms: float = Field(..., ge=0, description="Response time in milliseconds")
+    timestamp: datetime = Field(..., description="Health check timestamp")

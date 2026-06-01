@@ -3,8 +3,10 @@
 import json
 import logging
 import pytest
+import threading
+import time
 from io import StringIO
-from src.logger import Logger, JSONFormatter
+from src.logger import Logger, JSONFormatter, CorrelationContext
 
 
 class TestJSONFormatter:
@@ -396,3 +398,245 @@ class TestLogger:
         
         assert log1["correlation_id"] == "req-12345"
         assert "correlation_id" not in log2
+
+
+class TestCorrelationContext:
+    """Test suite for CorrelationContext class."""
+    
+    def test_set_and_get_correlation_id(self):
+        """Test setting and getting correlation ID."""
+        CorrelationContext.clear()  # Ensure clean state
+        
+        CorrelationContext.set("test-corr-123")
+        assert CorrelationContext.get() == "test-corr-123"
+        
+        CorrelationContext.clear()
+        assert CorrelationContext.get() is None
+    
+    def test_generate_correlation_id(self):
+        """Test generating unique correlation IDs."""
+        corr_id1 = CorrelationContext.generate()
+        corr_id2 = CorrelationContext.generate()
+        
+        # Should start with 'corr-' prefix
+        assert corr_id1.startswith("corr-")
+        assert corr_id2.startswith("corr-")
+        
+        # Should be unique
+        assert corr_id1 != corr_id2
+        
+        # Should have expected length (corr- + 16 hex chars)
+        assert len(corr_id1) == 21  # 5 + 16
+        assert len(corr_id2) == 21
+    
+    def test_clear_correlation_id(self):
+        """Test clearing correlation ID."""
+        CorrelationContext.set("test-corr-456")
+        assert CorrelationContext.get() == "test-corr-456"
+        
+        CorrelationContext.clear()
+        assert CorrelationContext.get() is None
+        
+        # Clearing again should not raise error
+        CorrelationContext.clear()
+        assert CorrelationContext.get() is None
+    
+    def test_context_manager_with_explicit_id(self, capfd):
+        """Test context manager with explicit correlation ID."""
+        CorrelationContext.clear()
+        logger = Logger("TestComponent", "INFO")
+        
+        with CorrelationContext.use("ctx-789") as corr_id:
+            assert corr_id == "ctx-789"
+            assert CorrelationContext.get() == "ctx-789"
+            logger.info("Inside context")
+        
+        # Should be cleared after context
+        assert CorrelationContext.get() is None
+        
+        # Verify log output
+        captured = capfd.readouterr()
+        log_data = json.loads(captured.out.strip())
+        assert log_data["correlation_id"] == "ctx-789"
+    
+    def test_context_manager_with_auto_generated_id(self, capfd):
+        """Test context manager with auto-generated correlation ID."""
+        CorrelationContext.clear()
+        logger = Logger("TestComponent", "INFO")
+        
+        with CorrelationContext.use() as corr_id:
+            assert corr_id is not None
+            assert corr_id.startswith("corr-")
+            assert CorrelationContext.get() == corr_id
+            logger.info("Inside context")
+        
+        # Should be cleared after context
+        assert CorrelationContext.get() is None
+        
+        # Verify log output
+        captured = capfd.readouterr()
+        log_data = json.loads(captured.out.strip())
+        assert log_data["correlation_id"] == corr_id
+    
+    def test_nested_context_managers(self, capfd):
+        """Test nested correlation context managers."""
+        CorrelationContext.clear()
+        logger = Logger("TestComponent", "INFO")
+        
+        with CorrelationContext.use("outer-ctx"):
+            assert CorrelationContext.get() == "outer-ctx"
+            logger.info("Outer context")
+            
+            with CorrelationContext.use("inner-ctx"):
+                assert CorrelationContext.get() == "inner-ctx"
+                logger.info("Inner context")
+            
+            # Should restore outer context
+            assert CorrelationContext.get() == "outer-ctx"
+            logger.info("Back to outer")
+        
+        # Should be cleared after all contexts
+        assert CorrelationContext.get() is None
+        
+        # Verify log output
+        captured = capfd.readouterr()
+        output_lines = captured.out.strip().split('\n')
+        
+        log1 = json.loads(output_lines[0])
+        log2 = json.loads(output_lines[1])
+        log3 = json.loads(output_lines[2])
+        
+        assert log1["correlation_id"] == "outer-ctx"
+        assert log2["correlation_id"] == "inner-ctx"
+        assert log3["correlation_id"] == "outer-ctx"
+    
+    def test_context_manager_exception_handling(self):
+        """Test that context manager clears correlation ID even on exception."""
+        CorrelationContext.clear()
+        
+        try:
+            with CorrelationContext.use("error-ctx"):
+                assert CorrelationContext.get() == "error-ctx"
+                raise ValueError("Test error")
+        except ValueError:
+            pass
+        
+        # Should be cleared even after exception
+        assert CorrelationContext.get() is None
+    
+    def test_thread_local_isolation(self):
+        """Test that correlation IDs are isolated between threads."""
+        results = {}
+        
+        def thread_func(thread_id, corr_id):
+            CorrelationContext.set(corr_id)
+            time.sleep(0.01)  # Small delay to ensure threads overlap
+            results[thread_id] = CorrelationContext.get()
+            CorrelationContext.clear()
+        
+        # Create and start multiple threads
+        threads = []
+        for i in range(5):
+            thread = threading.Thread(
+                target=thread_func,
+                args=(i, f"thread-{i}-corr")
+            )
+            threads.append(thread)
+            thread.start()
+        
+        # Wait for all threads to complete
+        for thread in threads:
+            thread.join()
+        
+        # Each thread should have seen its own correlation ID
+        for i in range(5):
+            assert results[i] == f"thread-{i}-corr"
+    
+    def test_correlation_id_propagation_in_logger(self, capfd):
+        """Test that correlation ID from context is used by logger."""
+        CorrelationContext.clear()
+        logger = Logger("TestComponent", "INFO")
+        
+        # Set correlation ID via context
+        CorrelationContext.set("propagate-test")
+        
+        # Logger should pick it up automatically
+        logger.info("Message 1")
+        logger.info("Message 2")
+        
+        captured = capfd.readouterr()
+        output_lines = captured.out.strip().split('\n')
+        
+        log1 = json.loads(output_lines[0])
+        log2 = json.loads(output_lines[1])
+        
+        assert log1["correlation_id"] == "propagate-test"
+        assert log2["correlation_id"] == "propagate-test"
+        
+        CorrelationContext.clear()
+    
+    def test_logger_instance_id_overrides_context(self, capfd):
+        """Test that logger instance correlation ID takes precedence over context."""
+        CorrelationContext.clear()
+        logger = Logger("TestComponent", "INFO")
+        
+        # Set context correlation ID
+        CorrelationContext.set("context-id")
+        
+        # Set logger instance correlation ID
+        logger.set_correlation_id("instance-id")
+        
+        logger.info("Test message")
+        
+        captured = capfd.readouterr()
+        log_data = json.loads(captured.out.strip())
+        
+        # Logger instance ID should take precedence
+        assert log_data["correlation_id"] == "instance-id"
+        
+        CorrelationContext.clear()
+    
+    def test_context_manager_restores_previous_id(self):
+        """Test that context manager restores previous correlation ID."""
+        CorrelationContext.clear()
+        
+        # Set initial correlation ID
+        CorrelationContext.set("initial-id")
+        assert CorrelationContext.get() == "initial-id"
+        
+        # Use context manager with different ID
+        with CorrelationContext.use("temp-id"):
+            assert CorrelationContext.get() == "temp-id"
+        
+        # Should restore initial ID
+        assert CorrelationContext.get() == "initial-id"
+        
+        CorrelationContext.clear()
+    
+    def test_multiple_context_managers_in_sequence(self, capfd):
+        """Test multiple context managers used sequentially."""
+        CorrelationContext.clear()
+        logger = Logger("TestComponent", "INFO")
+        
+        with CorrelationContext.use("ctx-1"):
+            logger.info("Context 1")
+        
+        with CorrelationContext.use("ctx-2"):
+            logger.info("Context 2")
+        
+        with CorrelationContext.use("ctx-3"):
+            logger.info("Context 3")
+        
+        captured = capfd.readouterr()
+        output_lines = captured.out.strip().split('\n')
+        
+        log1 = json.loads(output_lines[0])
+        log2 = json.loads(output_lines[1])
+        log3 = json.loads(output_lines[2])
+        
+        assert log1["correlation_id"] == "ctx-1"
+        assert log2["correlation_id"] == "ctx-2"
+        assert log3["correlation_id"] == "ctx-3"
+        
+        # Should be cleared after all contexts
+        assert CorrelationContext.get() is None

@@ -8,7 +8,7 @@ import json
 import logging
 import threading
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 
@@ -107,10 +107,19 @@ class JSONFormatter(logging.Formatter):
     - timestamp: ISO 8601 formatted timestamp
     - level: Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
     - component: Component name that generated the log
-    - correlation_id: Correlation ID from thread-local context
+    - correlation_id: Correlation ID from thread-local context or record
     - message: Log message
     - context: Additional context data passed via extra parameter
     """
+    
+    def __init__(self, component: str):
+        """Initialize JSON formatter with component name.
+        
+        Args:
+            component: Name of the component generating logs
+        """
+        super().__init__()
+        self.component = component
     
     def format(self, record: logging.LogRecord) -> str:
         """Format a log record as JSON.
@@ -123,14 +132,18 @@ class JSONFormatter(logging.Formatter):
         """
         # Build the base log structure
         log_data: Dict[str, Any] = {
-            'timestamp': datetime.utcnow().isoformat() + 'Z',
+            'timestamp': datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
             'level': record.levelname,
-            'component': getattr(record, 'component', 'Unknown'),
-            'correlation_id': CorrelationContext.get(),
+            'component': getattr(record, 'component', self.component),
             'message': record.getMessage(),
         }
         
-        # Add context data if present
+        # Add correlation_id only if present and not None
+        correlation_id = getattr(record, 'correlation_id', CorrelationContext.get())
+        if correlation_id is not None:
+            log_data['correlation_id'] = correlation_id
+        
+        # Add context data only if present and not None
         if hasattr(record, 'context') and record.context:
             log_data['context'] = record.context
         
@@ -160,9 +173,9 @@ class Logger:
     
     Example:
         >>> logger = Logger("VideoProcessor", "INFO")
-        >>> with CorrelationContext.use("job-123"):
-        ...     logger.info("Processing started", frame_number=1)
-        ...     logger.error("Processing failed", error="File not found")
+        >>> logger.set_correlation_id("job-123")
+        >>> logger.info("Processing started", frame_number=1)
+        >>> logger.error("Processing failed", error="File not found")
     """
     
     def __init__(self, component: str, level: str = "INFO"):
@@ -171,23 +184,47 @@ class Logger:
         Args:
             component: Name of the component (e.g., "VideoProcessor", "PersonDetector")
             level: Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL). Defaults to INFO.
+        
+        Raises:
+            ValueError: If an invalid log level is provided
         """
+        import sys
+        
         self.component = component
-        self.logger = logging.getLogger(component)
+        self.correlation_id: Optional[str] = None
+        
+        # Validate log level
+        level_upper = level.upper()
+        if level_upper not in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']:
+            raise ValueError(f"Invalid log level: {level}. Must be one of: DEBUG, INFO, WARNING, ERROR, CRITICAL")
+        
+        self._logger = logging.getLogger(component)
         
         # Set log level
-        self.logger.setLevel(getattr(logging, level.upper(), logging.INFO))
+        self._logger.setLevel(getattr(logging, level_upper))
         
         # Remove existing handlers to avoid duplicates
-        self.logger.handlers.clear()
+        self._logger.handlers.clear()
         
-        # Create console handler with JSON formatter
-        handler = logging.StreamHandler()
-        handler.setFormatter(JSONFormatter())
-        self.logger.addHandler(handler)
+        # Create console handler with JSON formatter - explicitly use sys.stdout for pytest compatibility
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(JSONFormatter(component))
+        self._logger.addHandler(handler)
         
         # Prevent propagation to root logger
-        self.logger.propagate = False
+        self._logger.propagate = False
+    
+    def set_correlation_id(self, correlation_id: str) -> None:
+        """Set the correlation ID for this logger instance.
+        
+        Args:
+            correlation_id: Unique identifier for the current operation
+        """
+        self.correlation_id = correlation_id
+    
+    def clear_correlation_id(self) -> None:
+        """Clear the correlation ID for this logger instance."""
+        self.correlation_id = None
     
     def _log(self, level: int, message: str, **kwargs) -> None:
         """Internal method to log with context.
@@ -201,7 +238,11 @@ class Logger:
             'component': self.component,
             'context': kwargs if kwargs else None
         }
-        self.logger.log(level, message, extra=extra)
+        # Only set correlation_id in extra if logger instance has one
+        # Otherwise, JSONFormatter will check CorrelationContext
+        if self.correlation_id is not None:
+            extra['correlation_id'] = self.correlation_id
+        self._logger.log(level, message, extra=extra)
     
     def debug(self, message: str, **kwargs) -> None:
         """Log a debug message.
