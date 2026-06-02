@@ -348,7 +348,7 @@ class EventGenerator:
                 if track_id in self.billing_queue_state:
                     abandon_event = self._generate_billing_queue_abandon_event(track_id, last_seen)
                     events.append(abandon_event)
-                    del self.billing_queue_state[track_id]
+                    # Note: billing_queue_state is already cleared in _generate_billing_queue_abandon_event
         
         return events
     
@@ -369,6 +369,17 @@ class EventGenerator:
         reentry_threshold = 300  # seconds
         
         # Check exit history for potential reentries
+        # First, clean up old exit history (> 300 seconds old)
+        tracks_to_remove = []
+        for prev_track_id, exit_timestamp in self.exit_history.items():
+            time_since_exit = (current_timestamp - exit_timestamp).total_seconds()
+            if time_since_exit > reentry_threshold:
+                tracks_to_remove.append(prev_track_id)
+        
+        for track_id in tracks_to_remove:
+            del self.exit_history[track_id]
+        
+        # Now check for reentries
         for prev_track_id, exit_timestamp in list(self.exit_history.items()):
             time_since_exit = (current_timestamp - exit_timestamp).total_seconds()
             
