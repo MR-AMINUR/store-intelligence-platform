@@ -1,0 +1,37 @@
+{
+  "zones": [
+    {
+      "zone_id": "cosmetics_section",
+      "zone_name": "Cosmetics Section",
+      "zone_type": "GENERAL",
+      "polygon": [
+        {"x": 100, "y": 100},
+        {"x": 300, "y": 100},
+        {"x": 300, "y": 300},
+        {"x": 100, "y": 300}
+      ]
+    },
+    {
+      "zone_id": "skincare_section",
+      "zone_name": "Skincare Section",
+      "zone_type": "GENERAL",
+      "polygon": [
+        {"x": 350, "y": 100},
+        {"x": 550, "y": 100},
+        {"x": 550, "y": 300},
+        {"x": 350, "y": 300}
+      ]
+    },
+    {
+      "zone_id": "billing_queue",
+      "zone_name": "Billing Queue",
+      "zone_type": "BILLING_QUEUE",
+      "polygon": [
+        {"x": 600, "y": 400},
+        {"x": 800, "y": 400},
+        {"x": 800, "y": 600},
+        {"x": 600, "y": 600}
+      ]
+    }
+  ]
+}

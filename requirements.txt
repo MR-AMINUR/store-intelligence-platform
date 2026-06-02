@@ -5,9 +5,9 @@ pydantic==2.5.3
 pydantic-settings==2.1.0
 
 # Computer Vision
-opencv-python==4.9.0.80
+opencv-python-headless==4.13.0.92
 ultralytics==8.1.11
-numpy==1.26.3
+numpy==2.4.4
 
 # Database
 sqlalchemy==2.0.25
