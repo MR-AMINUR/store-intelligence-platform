@@ -1,36 +1,69 @@
 {
   "zones": [
     {
-      "zone_id": "cosmetics_section",
+      "zone_id": "zone_001",
+      "zone_name": "Entrance Area",
+      "zone_type": "GENERAL",
+      "polygon": [
+        {"x": 50, "y": 50},
+        {"x": 200, "y": 50},
+        {"x": 200, "y": 150},
+        {"x": 50, "y": 150}
+      ]
+    },
+    {
+      "zone_id": "zone_002",
+      "zone_name": "Electronics Section",
+      "zone_type": "GENERAL",
+      "polygon": [
+        {"x": 250, "y": 100},
+        {"x": 450, "y": 100},
+        {"x": 450, "y": 300},
+        {"x": 250, "y": 300}
+      ]
+    },
+    {
+      "zone_id": "zone_003",
       "zone_name": "Cosmetics Section",
       "zone_type": "GENERAL",
       "polygon": [
-        {"x": 100, "y": 100},
-        {"x": 300, "y": 100},
-        {"x": 300, "y": 300},
-        {"x": 100, "y": 300}
+        {"x": 500, "y": 100},
+        {"x": 700, "y": 100},
+        {"x": 700, "y": 300},
+        {"x": 500, "y": 300}
       ]
     },
     {
-      "zone_id": "skincare_section",
-      "zone_name": "Skincare Section",
+      "zone_id": "zone_004",
+      "zone_name": "Clothing Section",
       "zone_type": "GENERAL",
       "polygon": [
-        {"x": 350, "y": 100},
-        {"x": 550, "y": 100},
-        {"x": 550, "y": 300},
-        {"x": 350, "y": 300}
+        {"x": 750, "y": 100},
+        {"x": 950, "y": 100},
+        {"x": 950, "y": 300},
+        {"x": 750, "y": 300}
       ]
     },
     {
-      "zone_id": "billing_queue",
+      "zone_id": "zone_005",
+      "zone_name": "Grocery Section",
+      "zone_type": "GENERAL",
+      "polygon": [
+        {"x": 250, "y": 350},
+        {"x": 550, "y": 350},
+        {"x": 550, "y": 550},
+        {"x": 250, "y": 550}
+      ]
+    },
+    {
+      "zone_id": "zone_billing",
       "zone_name": "Billing Queue",
       "zone_type": "BILLING_QUEUE",
       "polygon": [
-        {"x": 600, "y": 400},
-        {"x": 800, "y": 400},
-        {"x": 800, "y": 600},
-        {"x": 600, "y": 600}
+        {"x": 100, "y": 600},
+        {"x": 400, "y": 600},
+        {"x": 400, "y": 700},
+        {"x": 100, "y": 700}
       ]
     }
   ]

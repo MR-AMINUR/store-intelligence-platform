@@ -1,0 +1,107 @@
+version: '3.8'
+
+services:
+  # Main API Server Service
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: store-intelligence-api
+    image: store-intelligence-platform:latest
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      # Persistent database storage
+      - ./data:/app/data
+      # Video files directory (for processing)
+      - ./videos:/app/videos
+      # YOLOv8 models directory
+      - ./models:/app/models
+      # Zone configuration
+      - ./config:/app/config
+      # Logs directory
+      - ./logs:/app/logs
+    environment:
+      # Database Configuration
+      - DB_PATH=/app/data/events.db
+      
+      # API Server Configuration
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      
+      # Logging Configuration
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      
+      # YOLOv8 Model Configuration
+      - YOLO_MODEL_PATH=/app/models/yolov8n.pt
+      - CONFIDENCE_THRESHOLD=${CONFIDENCE_THRESHOLD:-0.5}
+      
+      # Person Tracker Configuration
+      - TRACKER_MAX_AGE=${TRACKER_MAX_AGE:-30}
+      
+      # Zone Configuration
+      - ZONE_CONFIG_PATH=/app/config/zones.json
+      
+      # Store Configuration
+      - STORE_ID=${STORE_ID:-store_001}
+    command: ["python", "-m", "uvicorn", "src.api_server:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "${WORKERS:-1}"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - store-intelligence-network
+    labels:
+      - "com.store-intelligence.service=api"
+      - "com.store-intelligence.version=1.0"
+
+  # Optional: Video Processing Worker Service
+  # Uncomment to run video processing in a separate container
+  # video-processor:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: store-intelligence-processor
+  #   image: store-intelligence-platform:latest
+  #   volumes:
+  #     - ./data:/app/data
+  #     - ./videos:/app/videos
+  #     - ./models:/app/models
+  #     - ./config:/app/config
+  #     - ./logs:/app/logs
+  #   environment:
+  #     - DB_PATH=/app/data/events.db
+  #     - LOG_LEVEL=${LOG_LEVEL:-INFO}
+  #     - YOLO_MODEL_PATH=/app/models/yolov8n.pt
+  #     - CONFIDENCE_THRESHOLD=${CONFIDENCE_THRESHOLD:-0.5}
+  #     - TRACKER_MAX_AGE=${TRACKER_MAX_AGE:-30}
+  #     - ZONE_CONFIG_PATH=/app/config/zones.json
+  #     - STORE_ID=${STORE_ID:-store_001}
+  #   command: ["store-intelligence-process", "--video", "/app/videos/sample.mp4"]
+  #   depends_on:
+  #     - api
+  #   networks:
+  #     - store-intelligence-network
+  #   labels:
+  #     - "com.store-intelligence.service=processor"
+
+networks:
+  store-intelligence-network:
+    driver: bridge
+    name: store-intelligence-network
+
+# Volumes for data persistence
+volumes:
+  data:
+    driver: local
+  models:
+    driver: local
+  videos:
+    driver: local
+  config:
+    driver: local
+  logs:
+    driver: local
