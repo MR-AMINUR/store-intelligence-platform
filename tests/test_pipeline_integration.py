@@ -175,8 +175,12 @@ class TestPipelineIntegration:
             result = pipeline.process()
             
             # Verify pipeline completes even with empty video
-            assert result.success is True
-            assert result.total_frames == 0
+            # Empty video should succeed (no frames to fail on)
+            assert result.success is True, f"Pipeline should succeed with empty video, but got errors: {result.errors}"
+            assert result.total_frames == 0, f"Expected 0 frames, got {result.total_frames}"
+            assert result.frames_failed == 0, f"Expected 0 failed frames, got {result.frames_failed}"
+            # Empty video may still generate finalize events (EXIT events for any lingering tracks)
+            assert result.events_generated >= 0, "Events generated should be non-negative"
             
         finally:
             if os.path.exists(empty_video_path):
@@ -230,7 +234,7 @@ class TestPipelineIntegration:
         integration_config
     ):
         """Test pipeline handles invalid video file gracefully."""
-        # Create invalid video file
+        # Create invalid video file (file exists but content is corrupted)
         with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as f:
             invalid_video_path = f.name
             f.write(b"not a valid video file")
@@ -238,9 +242,12 @@ class TestPipelineIntegration:
         try:
             logger = Logger("PipelineIntegration", "INFO")
             
-            # Pipeline should raise error during initialization (VideoProcessor)
-            with pytest.raises(RuntimeError):
-                pipeline = VideoPipeline(invalid_video_path, integration_config, logger)
+            # Pipeline initialization succeeds (file exists and has .mp4 extension)
+            # But RuntimeError should be raised when trying to open the video in process()
+            pipeline = VideoPipeline(invalid_video_path, integration_config, logger)
+            
+            # Processing should raise RuntimeError when VideoProcessor tries to open the invalid file
+            with pytest.raises(RuntimeError, match="Failed to open video file"):
                 pipeline.process()
         
         finally:
