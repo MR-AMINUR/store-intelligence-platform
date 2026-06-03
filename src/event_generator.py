@@ -63,7 +63,7 @@ class EventGenerator:
         self.track_state: Dict[int, int] = {}
         
         # Zone state: track_id -> {zone_id: str, enter_frame: int}
-        self.zone_state: Dict[int, Dict[str, any]] = {}
+        self.zone_state: Dict[int, Dict[str, Any]] = {}
         
         # Exit history: track_id -> exit_timestamp (datetime)
         self.exit_history: Dict[int, datetime] = {}

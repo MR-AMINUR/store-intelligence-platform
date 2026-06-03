@@ -65,7 +65,7 @@ class PersonTracker:
         trajectories: Dictionary storing trajectory history (track_id -> List[Position])
     """
     
-    def __init__(self, max_age: int = 30, logger: Logger = None):
+    def __init__(self, max_age: int = 30, logger: Optional[Logger] = None) -> None:
         """Initialize PersonTracker with ByteTrack.
         
         Args:

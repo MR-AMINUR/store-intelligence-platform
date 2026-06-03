@@ -12,7 +12,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, Callable, Iterator, List, Optional
 
 from src.logger import Logger
 from src.models import Event, EventType
@@ -102,7 +102,7 @@ class EventStore:
             )
     
     @contextmanager
-    def _get_connection(self):
+    def _get_connection(self) -> Iterator[sqlite3.Connection]:
         """Context manager for database connections.
         
         Yields:
@@ -115,7 +115,7 @@ class EventStore:
         finally:
             conn.close()
     
-    def _initialize_schema(self):
+    def _initialize_schema(self) -> None:
         """Initialize database schema with events table and indexes.
         
         Creates the events table if it doesn't exist, with indexes for:
@@ -176,7 +176,7 @@ class EventStore:
             if self.logger:
                 self.logger.debug("Database schema initialized")
     
-    def _retry_on_lock(self, operation, *args, **kwargs):
+    def _retry_on_lock(self, operation: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
         """Retry a database operation with exponential backoff on lock errors.
         
         Args:
@@ -225,7 +225,7 @@ class EventStore:
         Raises:
             sqlite3.Error: If database operation fails after retries
         """
-        def _insert():
+        def _insert() -> bool:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
                 
@@ -271,8 +271,8 @@ class EventStore:
         Returns:
             BatchResult with success count and any error messages
         """
-        def _insert_batch():
-            errors = []
+        def _insert_batch() -> BatchResult:
+            errors: List[str] = []
             success_count = 0
             
             try:
@@ -337,13 +337,13 @@ class EventStore:
         Returns:
             List of Event objects matching the filters
         """
-        def _query():
+        def _query() -> List[Event]:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
                 
                 # Build SQL query dynamically based on filters
                 query = "SELECT * FROM events WHERE store_id = ?"
-                params = [filters.store_id]
+                params: List[Any] = [filters.store_id]
                 
                 if filters.track_id is not None:
                     query += " AND track_id = ?"
@@ -442,7 +442,7 @@ class EventStore:
         """
         from src.models import StoreMetrics, TimeRange
         
-        def _calculate_metrics():
+        def _calculate_metrics() -> StoreMetrics:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
                 
@@ -534,7 +534,7 @@ class EventStore:
         self,
         store_id: str,
         zone_id: Optional[str] = None
-    ):
+    ) -> 'ConversionFunnel':
         """Calculate customer journey conversion funnel.
         
         Args:
@@ -546,7 +546,7 @@ class EventStore:
         """
         from src.models import ConversionFunnel, FunnelStage
         
-        def _calculate_funnel():
+        def _calculate_funnel() -> ConversionFunnel:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
                 
@@ -669,7 +669,7 @@ class EventStore:
         self,
         store_id: str,
         resolution: int = 50
-    ):
+    ) -> 'Heatmap':
         """Generate spatial density heatmap of customer movement.
         
         Args:
@@ -682,7 +682,7 @@ class EventStore:
         from src.models import Heatmap, GridDimensions
         import numpy as np
         
-        def _generate_heatmap():
+        def _generate_heatmap() -> Heatmap:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
                 
@@ -756,7 +756,7 @@ class EventStore:
         self,
         store_id: str,
         time_window: int = 24
-    ):
+    ) -> List['Anomaly']:
         """Detect anomalies in store metrics.
         
         Args:
@@ -770,7 +770,7 @@ class EventStore:
         from datetime import timedelta, timezone
         import statistics
         
-        def _detect():
+        def _detect() -> List[Anomaly]:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
                 anomalies = []

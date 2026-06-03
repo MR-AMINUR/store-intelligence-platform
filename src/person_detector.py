@@ -76,7 +76,7 @@ class PersonDetector:
                 import ultralytics.nn.tasks as tasks_module
                 original_load = torch.load
                 
-                def patched_load(f, *args, **kwargs):
+                def patched_load(f: Any, *args: Any, **kwargs: Any) -> Any:
                     # Force weights_only=False for YOLOv8 model loading
                     kwargs['weights_only'] = False
                     return original_load(f, *args, **kwargs)

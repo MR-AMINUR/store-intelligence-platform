@@ -9,7 +9,7 @@ import traceback
 import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import List, Optional, Union
+from typing import Any, AsyncIterator, Dict, List, Optional, Union
 from datetime import datetime, timezone
 
 from fastapi import FastAPI, Request, Response, status
@@ -32,7 +32,7 @@ from src.models import Event, EventType, IngestResponse
 class AppState:
     """Application state container for shared resources."""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.event_store: Optional[EventStore] = None
         self.logger: Optional[Logger] = None
 
@@ -41,7 +41,7 @@ app_state = AppState()
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Lifespan context manager for application startup/shutdown.
     
     Initializes EventStore and Logger on startup and cleans up on shutdown.
@@ -51,7 +51,7 @@ async def lifespan(app: FastAPI):
     
     # Initialize logger
     log_level = config.get("LOG_LEVEL", "INFO")
-    app_state.logger = Logger(component="api_server", log_level=log_level)
+    app_state.logger = Logger(component="api_server", level=log_level)
     app_state.logger.info("API server starting up")
     
     # Initialize event store

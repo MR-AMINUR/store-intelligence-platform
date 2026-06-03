@@ -62,7 +62,7 @@ class CorrelationContext:
         return f"corr-{uuid.uuid4().hex[:16]}"
     
     @classmethod
-    def use(cls, correlation_id: Optional[str] = None):
+    def use(cls, correlation_id: Optional[str] = None) -> '_CorrelationContextManager':
         """Context manager for setting correlation ID within a scope.
         
         Args:
@@ -83,16 +83,16 @@ class CorrelationContext:
 class _CorrelationContextManager:
     """Internal context manager for correlation IDs."""
     
-    def __init__(self, correlation_id: Optional[str] = None):
+    def __init__(self, correlation_id: Optional[str] = None) -> None:
         self.correlation_id = correlation_id or CorrelationContext.generate()
-        self.previous_id = None
+        self.previous_id: Optional[str] = None
     
-    def __enter__(self):
+    def __enter__(self) -> str:
         self.previous_id = CorrelationContext.get()
         CorrelationContext.set(self.correlation_id)
         return self.correlation_id
     
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool:
         if self.previous_id is not None:
             CorrelationContext.set(self.previous_id)
         else:
@@ -226,7 +226,7 @@ class Logger:
         """Clear the correlation ID for this logger instance."""
         self.correlation_id = None
     
-    def _log(self, level: int, message: str, **kwargs) -> None:
+    def _log(self, level: int, message: str, **kwargs: Any) -> None:
         """Internal method to log with context.
         
         Args:
@@ -244,7 +244,7 @@ class Logger:
             extra['correlation_id'] = self.correlation_id
         self._logger.log(level, message, extra=extra)
     
-    def debug(self, message: str, **kwargs) -> None:
+    def debug(self, message: str, **kwargs: Any) -> None:
         """Log a debug message.
         
         Args:
@@ -253,7 +253,7 @@ class Logger:
         """
         self._log(logging.DEBUG, message, **kwargs)
     
-    def info(self, message: str, **kwargs) -> None:
+    def info(self, message: str, **kwargs: Any) -> None:
         """Log an info message.
         
         Args:
@@ -262,7 +262,7 @@ class Logger:
         """
         self._log(logging.INFO, message, **kwargs)
     
-    def warning(self, message: str, **kwargs) -> None:
+    def warning(self, message: str, **kwargs: Any) -> None:
         """Log a warning message.
         
         Args:
@@ -271,7 +271,7 @@ class Logger:
         """
         self._log(logging.WARNING, message, **kwargs)
     
-    def error(self, message: str, **kwargs) -> None:
+    def error(self, message: str, **kwargs: Any) -> None:
         """Log an error message.
         
         Args:
@@ -280,7 +280,7 @@ class Logger:
         """
         self._log(logging.ERROR, message, **kwargs)
     
-    def critical(self, message: str, **kwargs) -> None:
+    def critical(self, message: str, **kwargs: Any) -> None:
         """Log a critical message.
         
         Args:
