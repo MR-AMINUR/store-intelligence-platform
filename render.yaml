@@ -1,0 +1,90 @@
+# Render Blueprint for Store Intelligence Platform
+# https://render.com/docs/blueprint-spec
+
+services:
+  # API Web Service
+  - type: web
+    name: store-intelligence-api
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    
+    # Resource plan
+    plan: free  # Options: free, starter, standard, pro
+    
+    # Region
+    region: oregon  # Closest to your target users
+    
+    # Scaling (free tier: 1 instance only)
+    numInstances: 1
+    
+    # Health check configuration
+    healthCheckPath: /health
+    
+    # Environment variables
+    envVars:
+      # Database configuration
+      - key: DB_PATH
+        value: /app/data/events.db
+      
+      # Logging
+      - key: LOG_LEVEL
+        value: INFO
+      
+      # YOLOv8 Model
+      - key: YOLO_MODEL_PATH
+        value: /app/models/yolov8n.pt
+      
+      # Detection settings
+      - key: CONFIDENCE_THRESHOLD
+        value: 0.5
+      
+      # Tracking settings
+      - key: TRACKER_MAX_AGE
+        value: 30
+      
+      # Zone configuration
+      - key: ZONE_CONFIG_PATH
+        value: /app/config/zones.json
+      
+      # Store ID (can be overridden per request)
+      - key: STORE_ID
+        value: store_001
+      
+      # Python environment
+      - key: PYTHONUNBUFFERED
+        value: 1
+      
+      # Port (automatically set by Render, but explicit here)
+      - key: PORT
+        value: 8000
+    
+    # Disk storage for database and models
+    disk:
+      name: store-intelligence-data
+      mountPath: /app/data
+      sizeGB: 1  # Free tier: up to 1GB
+    
+    # Build command (optional - Docker builds automatically)
+    # buildCommand: docker build -t store-intelligence .
+    
+    # Start command (uses Dockerfile CMD by default)
+    # startCommand: python -m uvicorn src.api_server:app --host 0.0.0.0 --port 8000
+
+# Alternative: Native environment (without Docker)
+# Uncomment below and comment out the above service for non-Docker deployment
+#
+# services:
+#   - type: web
+#     name: store-intelligence-api
+#     env: python
+#     buildCommand: |
+#       pip install -r requirements.txt
+#       python init_db.py
+#     startCommand: uvicorn src.api_server:app --host 0.0.0.0 --port $PORT
+#     plan: free
+#     envVars:
+#       - key: PYTHON_VERSION
+#         value: 3.10.0
+#       # ... (same environment variables as above)
+
