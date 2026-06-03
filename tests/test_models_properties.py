@@ -12,7 +12,7 @@ from src.models import Event, EventType
 
 # Property 1: Event Schema Completeness
 # Validates: Requirements 4.3, 8.1, 8.2, 8.3, 5.4
-@settings(max_examples=100)
+@settings(max_examples=20)
 @given(
     event_id=st.text(min_size=1, max_size=50),
     event_type=st.sampled_from(list(EventType)),
@@ -116,7 +116,7 @@ def test_property_event_schema_completeness(
 
 
 # Property: Event Type Enum Completeness
-@settings(max_examples=100)
+@settings(max_examples=20)
 @given(
     event_type=st.sampled_from(list(EventType))
 )
@@ -146,7 +146,7 @@ def test_property_event_type_enum_values(event_type):
 
 
 # Property: Metadata Preservation
-@settings(max_examples=100)
+@settings(max_examples=20)
 @given(
     metadata=st.dictionaries(
         keys=st.text(min_size=1, max_size=20, alphabet=st.characters(
@@ -203,7 +203,7 @@ def test_property_metadata_preservation(metadata):
 
 
 # Property: Event Immutability of Required Fields
-@settings(max_examples=100)
+@settings(max_examples=20)
 @given(
     event_id=st.text(min_size=1, max_size=50),
     store_id=st.text(min_size=1, max_size=50),

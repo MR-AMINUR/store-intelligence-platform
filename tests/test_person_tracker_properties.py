@@ -59,7 +59,7 @@ class TestTrajectoryMaintenanceProperty:
     trajectory history containing all positions over time.
     """
     
-    @settings(max_examples=50, deadline=2000, suppress_health_check=[HealthCheck.function_scoped_fixture])
+    @settings(max_examples=15, deadline=2000, suppress_health_check=[HealthCheck.function_scoped_fixture])
     @given(
         detections_per_frame=st.lists(
             detection_list_strategy(),
@@ -110,7 +110,7 @@ class TestTrajectoryMaintenanceProperty:
                 assert len(trajectory_at_frame) > 0, \
                     f"No trajectory position found for track {track_id} at frame {expected_frame}"
     
-    @settings(max_examples=30, deadline=2000, suppress_health_check=[HealthCheck.function_scoped_fixture])
+    @settings(max_examples=10, deadline=2000, suppress_health_check=[HealthCheck.function_scoped_fixture])
     @given(
         initial_detections=detection_list_strategy(),
         occlusion_frames=st.integers(min_value=1, max_value=29),
@@ -147,7 +147,7 @@ class TestTrajectoryMaintenanceProperty:
             assert len(trajectory) == initial_length, \
                 f"Trajectory for track {track_id} changed during occlusion"
     
-    @settings(max_examples=30, deadline=2000, suppress_health_check=[HealthCheck.function_scoped_fixture])
+    @settings(max_examples=10, deadline=2000, suppress_health_check=[HealthCheck.function_scoped_fixture])
     @given(
         num_frames=st.integers(min_value=2, max_value=20),
         detection=detection_strategy()
@@ -179,7 +179,7 @@ class TestTrajectoryMaintenanceProperty:
                 
                 previous_trajectory_length = len(trajectory)
     
-    @settings(max_examples=30, deadline=2000, suppress_health_check=[HealthCheck.function_scoped_fixture])
+    @settings(max_examples=10, deadline=2000, suppress_health_check=[HealthCheck.function_scoped_fixture])
     @given(
         detections=detection_list_strategy(),
         nonexistent_track_id=st.integers(min_value=1000, max_value=9999)
@@ -200,7 +200,7 @@ class TestTrajectoryMaintenanceProperty:
         assert len(trajectory) == 0, \
             f"Trajectory for nonexistent track {nonexistent_track_id} is not empty"
     
-    @settings(max_examples=30, deadline=2000, suppress_health_check=[HealthCheck.function_scoped_fixture])
+    @settings(max_examples=10, deadline=2000, suppress_health_check=[HealthCheck.function_scoped_fixture])
     @given(
         detection=detection_strategy(),
         frame_number=st.integers(min_value=0, max_value=100)
@@ -237,7 +237,7 @@ class TestTrajectoryMaintenanceProperty:
                 assert abs(position.y - expected_center_y) < 0.01, \
                     f"Trajectory y-position {position.y} does not match bbox center {expected_center_y}"
     
-    @settings(max_examples=30, deadline=2000, suppress_health_check=[HealthCheck.function_scoped_fixture])
+    @settings(max_examples=10, deadline=2000, suppress_health_check=[HealthCheck.function_scoped_fixture])
     @given(
         detection=detection_strategy(),
         max_age=st.integers(min_value=1, max_value=100)

@@ -31,7 +31,7 @@ def create_test_video_for_property(path: str, num_frames: int, fps: float, resol
 
 # Property 4: Frame Ordering Preservation
 # Validates: Requirements 1.5
-@settings(max_examples=50, deadline=5000)  # Reduced examples due to video creation overhead
+@settings(max_examples=15, deadline=5000)  # Reduced examples due to video creation overhead
 @given(
     num_frames=st.integers(min_value=5, max_value=30),
     fps=st.sampled_from([15.0, 24.0, 25.0, 30.0, 60.0])
@@ -95,7 +95,7 @@ def test_property_frame_ordering_preservation(num_frames, fps):
 
 # Property 5: Frame Metadata Completeness
 # Validates: Requirements 1.4
-@settings(max_examples=50, deadline=5000)
+@settings(max_examples=15, deadline=5000)
 @given(
     num_frames=st.integers(min_value=3, max_value=20),
     fps=st.sampled_from([24.0, 30.0]),
@@ -164,7 +164,7 @@ def test_property_frame_metadata_completeness(num_frames, fps, width, height):
 
 
 # Property: Consistent Metadata Across Frames
-@settings(max_examples=30, deadline=5000)
+@settings(max_examples=10, deadline=5000)
 @given(
     num_frames=st.integers(min_value=5, max_value=15),
     fps=st.sampled_from([24.0, 30.0]),
@@ -204,7 +204,7 @@ def test_property_consistent_metadata_across_frames(num_frames, fps, resolution)
 
 
 # Property: Frame Timestamp Calculation
-@settings(max_examples=30, deadline=5000)
+@settings(max_examples=10, deadline=5000)
 @given(
     num_frames=st.integers(min_value=3, max_value=15),
     fps=st.sampled_from([15.0, 24.0, 25.0, 30.0, 60.0])

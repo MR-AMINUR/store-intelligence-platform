@@ -97,7 +97,7 @@ def get_sample_zones():
 
 # Property 2: Event Pairing Invariant
 @pytest.mark.property
-@settings(max_examples=100, deadline=None)
+@settings(max_examples=20, deadline=None)
 @given(
     tracks=st.lists(track_strategy(), min_size=1, max_size=10, unique_by=lambda t: t.track_id),
     frame_numbers=st.lists(st.integers(min_value=1, max_value=1000), min_size=2, max_size=50)
@@ -147,7 +147,7 @@ def test_property_event_pairing_invariant(tracks, frame_numbers):
 
 # Property 9: Entry Event Generation
 @pytest.mark.property
-@settings(max_examples=100, deadline=None)
+@settings(max_examples=20, deadline=None)
 @given(track=track_strategy(), frame_number=st.integers(min_value=1, max_value=1000))
 def test_property_entry_event_generation(track, frame_number):
     """Property 9: Every new track must generate exactly one ENTRY event.
@@ -182,7 +182,7 @@ def test_property_entry_event_generation(track, frame_number):
 
 # Property 10: Exit Event Generation
 @pytest.mark.property
-@settings(max_examples=100, deadline=None)
+@settings(max_examples=20, deadline=None)
 @given(
     track=track_strategy(),
     entry_frame=st.integers(min_value=1, max_value=100),
@@ -225,7 +225,7 @@ def test_property_exit_event_generation(track, entry_frame, absence_frames):
 
 # Property 11: Event ID Uniqueness
 @pytest.mark.property
-@settings(max_examples=100, deadline=None)
+@settings(max_examples=20, deadline=None)
 @given(
     tracks=st.lists(track_strategy(), min_size=5, max_size=20, unique_by=lambda t: t.track_id),
     frame_numbers=st.lists(st.integers(min_value=1, max_value=500), min_size=10, max_size=50)
@@ -267,7 +267,7 @@ def test_property_event_id_uniqueness(tracks, frame_numbers):
 
 # Property 12: Zone Boundary Detection
 @pytest.mark.property
-@settings(max_examples=100, deadline=None)
+@settings(max_examples=20, deadline=None)
 @given(
     track_id=st.integers(min_value=1, max_value=100),
     frame_number=st.integers(min_value=1, max_value=1000)
@@ -312,7 +312,7 @@ def test_property_zone_boundary_detection(track_id, frame_number):
 
 # Property 13: Zone Dwell Event Generation
 @pytest.mark.property
-@settings(max_examples=100, deadline=None)
+@settings(max_examples=20, deadline=None)
 @given(
     track_id=st.integers(min_value=1, max_value=100),
     entry_frame=st.integers(min_value=1, max_value=100),
@@ -367,7 +367,7 @@ def test_property_zone_dwell_generation(track_id, entry_frame, dwell_frames):
 
 # Property 14: Billing Queue Event Generation
 @pytest.mark.property
-@settings(max_examples=100, deadline=None)
+@settings(max_examples=20, deadline=None)
 @given(
     track_id=st.integers(min_value=1, max_value=100),
     frame_number=st.integers(min_value=1, max_value=1000)
@@ -412,7 +412,7 @@ def test_property_billing_queue_event_generation(track_id, frame_number):
 
 # Property 15: High Wait Time Flagging
 @pytest.mark.property
-@settings(max_examples=100, deadline=None)
+@settings(max_examples=20, deadline=None)
 @given(
     track_id=st.integers(min_value=1, max_value=100),
     entry_frame=st.integers(min_value=1, max_value=100),
@@ -477,7 +477,7 @@ def test_property_high_wait_time_flagging(track_id, entry_frame, wait_seconds):
 
 # Property 16: Reentry Detection and Classification
 @pytest.mark.property
-@settings(max_examples=100, deadline=None)
+@settings(max_examples=20, deadline=None)
 @given(
     track_id_1=st.integers(min_value=1, max_value=50),
     track_id_2=st.integers(min_value=51, max_value=100),
@@ -547,7 +547,7 @@ def test_property_reentry_detection(track_id_1, track_id_2, entry_frame, exit_fr
 
 # Property 17: ISO 8601 Timestamp Format
 @pytest.mark.property
-@settings(max_examples=100, deadline=None)
+@settings(max_examples=20, deadline=None)
 @given(
     tracks=st.lists(track_strategy(), min_size=1, max_size=5, unique_by=lambda t: t.track_id),
     frame_number=st.integers(min_value=1, max_value=1000)

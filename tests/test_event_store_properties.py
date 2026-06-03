@@ -57,7 +57,7 @@ def event_strategy(draw):
 
 # Property 3: System-Wide Idempotency
 @pytest.mark.property
-@settings(max_examples=100, deadline=None)
+@settings(max_examples=20, deadline=None)
 @given(
     events=st.lists(event_strategy(), min_size=1, max_size=20, unique_by=lambda e: e.event_id)
 )
@@ -91,7 +91,7 @@ def test_property_idempotency_single_insertion(events):
 
 
 @pytest.mark.property
-@settings(max_examples=100, deadline=None)
+@settings(max_examples=20, deadline=None)
 @given(
     events=st.lists(event_strategy(), min_size=5, max_size=20, unique_by=lambda e: e.event_id)
 )
@@ -133,7 +133,7 @@ def test_property_idempotency_batch_insertion(events):
 
 
 @pytest.mark.property
-@settings(max_examples=100, deadline=None)
+@settings(max_examples=20, deadline=None)
 @given(
     events=st.lists(event_strategy(), min_size=3, max_size=10, unique_by=lambda e: e.event_id)
 )

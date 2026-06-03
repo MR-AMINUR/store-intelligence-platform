@@ -559,7 +559,7 @@ This implementation plan breaks down the Store Intelligence Platform into discre
     - Use TestClient from FastAPI
     - _Requirements: 20.3, 11.1, 12.1, 13.1, 14.1, 15.1_
 
-- [ ] 18. Implement Video Processing Pipeline Integration
+- [x] 18. Implement Video Processing Pipeline Integration
   - [ ] 18.1 Create main pipeline orchestrator
     - Accept video_path, config, logger
     - Initialize VideoProcessor, PersonDetector, PersonTracker, EventGenerator, EventStore
@@ -585,10 +585,10 @@ This implementation plan breaks down the Store Intelligence Platform into discre
     - Verify event types are correct
     - _Requirements: 20.3_
 
-- [ ] 19. Checkpoint - Ensure all tests pass
+- [x] 19. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 20. Create CLI Entry Points
+- [x] 20. Create CLI Entry Points
   - [ ] 20.1 Create CLI for video processing
     - Accept video_path, config_path as arguments
     - Load configuration

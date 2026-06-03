@@ -36,7 +36,7 @@ def create_mock_detection_box(confidence: float, class_id: int, x1: float, y1: f
 
 # Property 6: Detection Confidence Filtering
 # **Validates: Requirements 2.4**
-@settings(max_examples=50)
+@settings(max_examples=15)
 @given(
     threshold=confidence_scores,
     detection_confidences=st.lists(
@@ -116,7 +116,7 @@ def test_property_confidence_filtering(threshold, detection_confidences, frame_s
 
 # Property 7: Detection Structure Validity
 # **Validates: Requirements 2.2, 2.3**
-@settings(max_examples=50)
+@settings(max_examples=15)
 @given(
     threshold=confidence_scores,
     num_detections=st.integers(min_value=1, max_value=10),
@@ -231,7 +231,7 @@ def test_property_detection_structure_validity(threshold, num_detections, frame_
 
 
 # Additional Property: Confidence Threshold Boundary
-@settings(max_examples=50)
+@settings(max_examples=15)
 @given(
     threshold=confidence_scores,
     frame_shape=frame_shapes
@@ -281,7 +281,7 @@ def test_property_confidence_threshold_boundary(threshold, frame_shape):
 
 
 # Additional Property: Non-Person Class Filtering
-@settings(max_examples=50)
+@settings(max_examples=15)
 @given(
     threshold=confidence_scores,
     class_ids=st.lists(

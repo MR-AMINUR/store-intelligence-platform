@@ -767,7 +767,7 @@ class EventStore:
             List of Anomaly objects
         """
         from src.models import Anomaly, AnomalyMetrics
-        from datetime import timedelta
+        from datetime import timedelta, timezone
         import statistics
         
         def _detect():
@@ -776,7 +776,7 @@ class EventStore:
                 anomalies = []
                 
                 # Calculate time window
-                current_time = datetime.now()
+                current_time = datetime.now(timezone.utc)
                 window_start = current_time - timedelta(hours=time_window)
                 
                 # 1. Detect sudden crowd surge

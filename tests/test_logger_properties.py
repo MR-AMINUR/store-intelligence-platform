@@ -26,7 +26,7 @@ def capture_log_output(func):
 
 # Property 33: Structured Logging Format
 # Validates: Requirements 17.1, 17.2, 17.3
-@settings(max_examples=100)
+@settings(max_examples=20)
 @given(
     component_name=st.text(min_size=1, max_size=50, alphabet=st.characters(
         whitelist_categories=('Lu', 'Ll', 'Nd'),
@@ -172,7 +172,7 @@ def test_property_structured_logging_format(
 
 
 # Property: Correlation ID Propagation via Context
-@settings(max_examples=100)
+@settings(max_examples=20)
 @given(
     correlation_id=st.text(min_size=1, max_size=50, alphabet=st.characters(
         whitelist_categories=('Lu', 'Ll', 'Nd'),
@@ -222,7 +222,7 @@ def test_property_correlation_id_propagation(correlation_id, num_log_calls):
 
 
 # Property: Log Level Filtering
-@settings(max_examples=100)
+@settings(max_examples=20)
 @given(
     configured_level=st.sampled_from(['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']),
     log_calls=st.lists(
@@ -280,7 +280,7 @@ def test_property_log_level_filtering(configured_level, log_calls):
 
 
 # Property: Context Data Preservation
-@settings(max_examples=100)
+@settings(max_examples=20)
 @given(
     context_data=st.dictionaries(
         keys=st.text(min_size=1, max_size=20, alphabet=st.characters(

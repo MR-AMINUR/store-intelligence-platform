@@ -68,7 +68,28 @@ class PersonDetector:
         try:
             # Load YOLOv8 model
             self.logger.info("Loading YOLOv8 model", model_path=model_path, device=self.device)
-            self.model = YOLO(model_path)
+            
+            # Patch ultralytics torch_safe_load for PyTorch 2.6+ compatibility
+            # PyTorch 2.6 changed torch.load to use weights_only=True by default
+            # which breaks YOLOv8 model loading. We monkey-patch to use weights_only=False.
+            try:
+                import ultralytics.nn.tasks as tasks_module
+                original_load = torch.load
+                
+                def patched_load(f, *args, **kwargs):
+                    # Force weights_only=False for YOLOv8 model loading
+                    kwargs['weights_only'] = False
+                    return original_load(f, *args, **kwargs)
+                
+                # Temporarily replace torch.load
+                torch.load = patched_load
+                self.model = YOLO(model_path)
+                # Restore original torch.load
+                torch.load = original_load
+            except Exception as patch_error:
+                # Fallback: try loading without patch
+                self.logger.warning("Failed to patch torch.load, trying direct load", error=str(patch_error))
+                self.model = YOLO(model_path)
             
             # Move model to device
             self.model.to(self.device)
