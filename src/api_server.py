@@ -708,7 +708,7 @@ async def detect_anomalies(
     try:
         anomalies = event_store.detect_anomalies(
             store_id=store_id,
-            time_window_hours=time_window
+            time_window=time_window
         )
         
         logger.info(
