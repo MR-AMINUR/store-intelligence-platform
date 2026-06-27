@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Connection Test</title>
+</head>
+<body>
+    <h1>API Connection Test</h1>
+    <button onclick="testHealth()">Test Health</button>
+    <button onclick="testMetrics()">Test Metrics</button>
+    <button onclick="testFunnel()">Test Funnel</button>
+    <button onclick="testAnomalies()">Test Anomalies</button>
+    <pre id="output"></pre>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        const output = document.getElementById('output');
+
+        async function testHealth() {
+            output.textContent = 'Testing /health...';
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                output.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                output.textContent = `ERROR: ${error.message}`;
+            }
+        }
+
+        async function testMetrics() {
+            output.textContent = 'Testing /stores/store_001/metrics...';
+            try {
+                const response = await fetch(`${API_URL}/stores/store_001/metrics`);
+                const data = await response.json();
+                output.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                output.textContent = `ERROR: ${error.message}`;
+            }
+        }
+
+        async function testFunnel() {
+            output.textContent = 'Testing /stores/store_001/funnel...';
+            try {
+                const response = await fetch(`${API_URL}/stores/store_001/funnel`);
+                const data = await response.json();
+                output.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                output.textContent = `ERROR: ${error.message}`;
+            }
+        }
+
+        async function testAnomalies() {
+            output.textContent = 'Testing /stores/store_001/anomalies...';
+            try {
+                const response = await fetch(`${API_URL}/stores/store_001/anomalies`);
+                const data = await response.json();
+                output.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                output.textContent = `ERROR: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
