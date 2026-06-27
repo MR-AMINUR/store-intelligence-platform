@@ -1,7 +1,7 @@
 # Dockerfile for Store Intelligence Platform
 # Simplified for reliable Render.com deployment
 
-FROM python:3.10-slim
+FROM python:3.11-slim
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
