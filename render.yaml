@@ -59,11 +59,13 @@ services:
       - key: PORT
         value: 8000
     
-    # Disk storage for database and models
-    disk:
-      name: store-intelligence-data
-      mountPath: /app/data
-      sizeGB: 1  # Free tier: up to 1GB
+    # Note: Persistent disk storage is not available on free tier
+    # Database will use in-memory/ephemeral storage (resets on restart)
+    # For persistent storage, upgrade to Starter plan ($7/mo) and uncomment below:
+    # disk:
+    #   name: store-intelligence-data
+    #   mountPath: /app/data
+    #   sizeGB: 1
     
     # Build command (optional - Docker builds automatically)
     # buildCommand: docker build -t store-intelligence .
