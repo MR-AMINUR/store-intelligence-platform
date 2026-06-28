@@ -104,3 +104,6 @@ dmypy.json
 *.tmp
 *.bak
 *.swp
+
+# Python wheel files
+*.whl

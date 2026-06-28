@@ -6,12 +6,13 @@ The requirements.txt has been updated to be fully compatible with Python 3.14.3.
 
 ## Critical Changes
 
-### 1. **Pydantic: 2.5.3 → 2.10.6** (CRITICAL)
+### 1. **Pydantic: 2.5.3 → 2.13.4** (CRITICAL)
 
 **Why**: 
 - pydantic 2.5.3 uses pydantic-core 2.14.6, which has no Python 3.14 wheels
 - Building pydantic-core from source fails on Python 3.14
-- pydantic 2.10.6 uses pydantic-core 2.27+, which has Python 3.14 wheels
+- pydantic 2.13.4 uses pydantic-core 2.46.4, which has pre-built Python 3.14 wheels
+- pydantic 2.10.6 was initially attempted but required building from source due to Application Control policy blocking Rust build tools
 
 **Impact**: 
 - ✅ **No breaking changes** - Pydantic v2 maintains stable API
@@ -322,7 +323,7 @@ pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cu121
 | Package | Old Version | New Version | Reason |
 |---------|-------------|-------------|--------|
 | **fastapi** | 0.109.0 | 0.115.6 | Python 3.14 + pydantic 2.10 support |
-| **pydantic** | 2.5.3 | 2.10.6 | **Critical**: Python 3.14 wheels |
+| **pydantic** | 2.5.3 | 2.13.4 | **Critical**: Python 3.14 wheels |
 | **pydantic-settings** | 2.1.0 | 2.7.1 | Match pydantic 2.10 |
 | **sqlalchemy** | 2.0.25 | 2.0.36 | Bug fixes, Python 3.14 |
 | **uvicorn** | 0.27.0 | 0.34.0 | Performance + Python 3.14 |
