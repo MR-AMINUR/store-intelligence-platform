@@ -525,17 +525,8 @@ async def get_store_metrics(
             correlation_id=correlation_id
         )
         
-        # Check if store has any events
-        if metrics.total_entries == 0 and metrics.total_exits == 0:
-            return JSONResponse(
-                status_code=404,
-                content={
-                    "detail": f"Store '{store_id}' not found or has no events",
-                    "correlation_id": correlation_id
-                }
-            )
-        
         # Convert to dict for response
+        # Note: Returns metrics even if zero events (valid state for new/empty stores)
         return metrics.model_dump(mode='json')
     
     except Exception as e:
