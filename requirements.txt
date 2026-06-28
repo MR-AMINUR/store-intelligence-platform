@@ -24,3 +24,7 @@ mypy==1.8.0
 
 # Utilities
 python-dotenv==1.0.0
+
+# Pipeline-specific dependencies
+requests==2.31.0
+torch>=2.0.0  # For YOLOv8 GPU support

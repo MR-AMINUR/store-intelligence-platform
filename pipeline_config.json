@@ -1,0 +1,36 @@
+{
+  "store_id": "store_001",
+  "camera_name": "camera_main",
+  "mode": "file",
+  "replay_timing": true,
+  "detector": {
+    "model_path": "./models/yolov8n.pt",
+    "confidence_threshold": 0.5,
+    "device": "auto",
+    "batch_size": 1
+  },
+  "tracker": {
+    "max_age": 30,
+    "min_hits": 3,
+    "iou_threshold": 0.3
+  },
+  "zone": {
+    "config_path": "./config/zones.json",
+    "dwell_threshold_seconds": 5.0
+  },
+  "video": {
+    "supported_formats": [".mp4", ".avi", ".mov"],
+    "frame_skip": 0,
+    "target_fps": null,
+    "resize_width": null,
+    "resize_height": null
+  },
+  "api": {
+    "base_url": "http://localhost:8000",
+    "ingest_endpoint": "/events/ingest",
+    "timeout_seconds": 30,
+    "max_retries": 3,
+    "retry_delay_seconds": 1.0,
+    "batch_size": 50
+  }
+}
